@@ -2,7 +2,11 @@
 
 import { useRef, useState } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://resume-backendd.onrender.com"
+    : "http://localhost:8000");
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const MIN_JD = 50;
 const MAX_JD = 15000;
