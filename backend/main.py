@@ -17,7 +17,10 @@ load_dotenv()
 
 ALLOWED_ORIGINS = [
     o.strip()
-    for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+    for o in os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,https://resume-frontend-navy.vercel.app",
+    ).split(",")
     if o.strip()
 ]
 
