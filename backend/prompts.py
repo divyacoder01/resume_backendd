@@ -31,6 +31,10 @@ Return JSON matching the provided schema.
 - resume: the tailored resume.
 - changes: 3-8 short notes describing what you changed and why.
 - match_keywords: job-description keywords that the tailored resume covers.
+- missing_keywords: important job-description keywords (skills, tools,
+  qualifications) that are NOT supported by the original resume. Do not add
+  them to the resume; they are suggestions the candidate can add only if true.
+  Never list a keyword that is also in match_keywords.
 """
 
 

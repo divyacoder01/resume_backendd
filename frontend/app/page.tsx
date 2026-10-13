@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -39,7 +39,18 @@ type Resume = {
   education: Education[];
   certifications: string[];
 };
-type Result = { resume: Resume; changes: string[]; match_keywords: string[] };
+type Result = {
+  resume: Resume;
+  changes: string[];
+  match_keywords: string[];
+  missing_keywords: string[];
+};
+
+function matchScore(r: Result): number | null {
+  const matched = r.match_keywords.length;
+  const total = matched + (r.missing_keywords?.length ?? 0);
+  return total === 0 ? null : Math.round((matched / total) * 100);
+}
 
 async function errorMessage(res: Response): Promise<string> {
   try {
@@ -60,6 +71,14 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [slow, setSlow] = useState(false);
+
+  // The free backend sleeps when idle; tell the user if the wait is long.
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(t);
+  }, [loading]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   function pickFile(f: File | null) {
@@ -84,6 +103,7 @@ export default function Home() {
     e.preventDefault();
     if (!file) return;
     setLoading(true);
+    setSlow(false);
     setError(null);
     setResult(null);
     try {
@@ -224,7 +244,11 @@ export default function Home() {
           {loading ? "Tailoring your resume..." : "Customize my resume"}
         </button>
         {loading && (
-          <p className="text-sm text-zinc-500">This usually takes 10-30 seconds.</p>
+          <p className="text-sm text-zinc-500">
+            {slow
+              ? "The server is waking up after being idle. This can take up to a minute, please keep this page open."
+              : "This usually takes 10-30 seconds."}
+          </p>
         )}
       </form>
 
@@ -255,6 +279,24 @@ export default function Home() {
             </div>
           </div>
 
+          {matchScore(result) !== null && (
+            <div className="rounded-lg border border-zinc-300 p-4 dark:border-zinc-700">
+              <div className="mb-2 flex items-baseline justify-between">
+                <h3 className="font-medium">Job match</h3>
+                <span className="text-2xl font-semibold">{matchScore(result)}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                <div
+                  className="h-full rounded-full bg-green-500"
+                  style={{ width: `${matchScore(result)}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-zinc-500">
+                Share of the job&apos;s key requirements your resume covers.
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-zinc-300 p-4 dark:border-zinc-700">
               <h3 className="mb-2 font-medium">What changed</h3>
@@ -278,6 +320,26 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {result.missing_keywords?.length > 0 && (
+            <div className="rounded-lg border border-zinc-300 p-4 dark:border-zinc-700">
+              <h3 className="mb-1 font-medium">Keywords you could add</h3>
+              <p className="mb-2 text-xs text-zinc-500">
+                The job asks for these, but your resume doesn&apos;t show them. Add
+                them only if they&apos;re true for you.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {result.missing_keywords.map((k, i) => (
+                  <span
+                    key={i}
+                    className="rounded-full bg-amber-500/15 px-2.5 py-1 text-xs text-amber-700 dark:text-amber-400"
+                  >
+                    {k}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           <ResumePreview r={result.resume} />
         </section>

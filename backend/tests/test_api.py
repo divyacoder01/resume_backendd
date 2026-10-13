@@ -26,6 +26,7 @@ FAKE_RESULT = CustomizeResult(
     resume=Resume(name="Jane Doe", email="jane@example.com", skills=["Python"]),
     changes=["Reordered skills"],
     match_keywords=["Python"],
+    missing_keywords=["Kubernetes"],
 )
 
 
@@ -54,6 +55,7 @@ def test_customize_ok():
     r = post()
     assert r.status_code == 200
     assert r.json()["resume"]["name"] == "Jane Doe"
+    assert r.json()["missing_keywords"] == ["Kubernetes"]
 
 
 def test_rejects_bad_extension():

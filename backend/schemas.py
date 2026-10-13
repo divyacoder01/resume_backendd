@@ -49,3 +49,8 @@ class CustomizeResult(BaseModel):
     match_keywords: list[str] = Field(
         description="Job-description keywords the tailored resume covers."
     )
+    missing_keywords: list[str] = Field(
+        default_factory=list,
+        description="Important job-description keywords the resume does not "
+        "support, which the candidate could add if they truly have them.",
+    )

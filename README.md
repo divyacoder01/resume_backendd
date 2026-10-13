@@ -4,8 +4,24 @@ Upload your resume (PDF or DOCX), paste a job description, and get a version
 tailored to that role — rewritten summary, reordered skills, sharper bullets —
 using **only facts already in your resume**. Download the result as PDF or DOCX.
 
-- **Live app:** _add your Vercel URL_
-- **API:** _add your Render URL_ (`/docs` shows the interactive API docs)
+- **Live app:** <https://resume-frontend-navy.vercel.app>
+- **API:** <https://resume-backendd.onrender.com> (`/docs` shows the interactive API docs)
+
+> The backend runs on Render's free tier and sleeps when idle, so the first
+> request after a quiet period can take up to a minute. The app shows a
+> "server is waking up" message while it waits.
+
+<!-- Add screenshots here, e.g. ![Result view](docs/result.png) -->
+
+## Features
+
+- Upload a PDF or DOCX resume and paste a job description.
+- Tailored resume: rewritten summary, reordered skills, sharper bullets, using only facts from the original.
+- **Job match %**, calculated as matched ÷ (matched + missing) keywords.
+- **Matched keywords** the tailored resume covers.
+- **Keywords you could add**: job keywords missing from your resume, as suggestions only. They are never inserted automatically.
+- "What changed" notes explaining the edits.
+- Download the result as PDF or DOCX.
 
 ## How it works
 
@@ -21,7 +37,10 @@ Browser  --JSON--> POST /download --> PDF (reportlab) or DOCX (python-docx)
 | --- | --- |
 | Frontend | Next.js 16, React 19, Tailwind 4 (Vercel) |
 | Backend | FastAPI, Pydantic (Render) |
-| LLM | Google Gemini via `google-genai` |
+| LLM | Google Gemini via `google-genai`, model **`gemini-3.8-flash`** (set with `GEMINI_MODEL`) |
+
+**Architecture:** Next.js (Vercel) → FastAPI (Render) → Gemini API. The browser
+only talks to the FastAPI backend, so the Gemini key stays on the server.
 
 ## LLM design
 
@@ -40,7 +59,7 @@ Browser  --JSON--> POST /download --> PDF (reportlab) or DOCX (python-docx)
 | Endpoint | Description |
 | --- | --- |
 | `GET /health` | Liveness check |
-| `POST /customize` | multipart: `resume` (.pdf/.docx, ≤ 5 MB), `job_description` (50–15,000 chars). Returns `{resume, changes, match_keywords}` |
+| `POST /customize` | multipart: `resume` (.pdf/.docx, ≤ 5 MB), `job_description` (50–15,000 chars). Returns `{resume, changes, match_keywords, missing_keywords}` |
 | `POST /download?format=pdf\|docx` | JSON body = resume object; returns the file |
 
 Validation: extension, content type, magic bytes, size, empty/unreadable files,
@@ -93,11 +112,14 @@ Note: Render's free tier sleeps after inactivity, so the first request can take 
 ## Bonus features
 
 - Per-IP rate limit on `/customize` (`RATE_LIMIT_PER_HOUR`, default 10) to protect the API key.
+- Job match percentage and missing-keyword suggestions in the result view.
 - "What changed" notes and matched-keyword chips in the result view.
 - Automated test suite (11 tests).
 
 ## Limitations
 
+- Render's free tier sleeps when idle, so the first request can take up to a minute.
 - Scanned/image-only PDFs aren't supported (no OCR).
+- The match percentage is an estimate based on Gemini's keyword lists, not a real ATS score.
 - Layout and styling of the original resume aren't preserved; output uses a clean standard template.
 - Rate limiting is in-memory, so it resets on restart and isn't shared across instances.
