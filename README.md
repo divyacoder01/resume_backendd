@@ -11,7 +11,7 @@ using **only facts already in your resume**. Download the result as PDF or DOCX.
 > request after a quiet period can take up to a minute. The app shows a
 > "server is waking up" message while it waits.
 
-<!-- Add screenshots here, e.g. ![Result view](docs/result.png) -->
+![Result view: job match, matched keywords and keywords you could add](docs/result.png)
 
 ## Features
 
